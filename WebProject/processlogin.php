@@ -27,8 +27,7 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Check if all required parameters are set
         if (!isset($_POST["username"]) || !isset($_POST["password"])) {
-            header("Location: login.php");
-            exit();
+            echo "<p>Missing parameter(s)!</p>";
         } else {
             $username = $_POST["username"];
             $password = md5($_POST["password"]);
@@ -37,13 +36,13 @@
             $sql = "SELECT * FROM users WHERE username='$username' AND password='$password'";
             $result = mysqli_query($connection, $sql);
             if (mysqli_num_rows($result) > 0) {
-                // Create a new session for the user
+                $row = mysqli_fetch_assoc($result);
                 $_SESSION["username"] = $username;
-                header("Location: home.php");
+                $_SESSION["userID"] = $row["userID"];
+                header("Location: home.php?userID=" . $row["userID"]);
                 exit();
             } else {
-                header("Location: login.php");
-                exit();
+                echo "<p>Invalid username and/or password.</p>";
             }
         }
     } else {

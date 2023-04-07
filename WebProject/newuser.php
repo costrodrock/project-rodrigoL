@@ -42,8 +42,8 @@
           if (mysqli_query($connection, $sql)) {
             echo "<p>User account has been created!</p>";
 
-            // Insert image data into database
-            $userID = mysqli_insert_id($connection); // get the ID of the inserted user
+            // Insert image data into database and get the ID of the inserted user
+            $userID = mysqli_insert_id($connection);
             $imageFileType = $_FILES['userImage']['type'];
             $imagedata = file_get_contents($_FILES['userImage']['tmp_name']);
 

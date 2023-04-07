@@ -19,7 +19,7 @@
 
 		// Get the post information from the database
 		$postID = $_GET['postID'];
-		$query = "SELECT * FROM posts WHERE postID='$postID'";
+		$query = "SELECT posts.*, users.username FROM posts JOIN users ON posts.userID = users.userID WHERE postID='$postID'";
 		$result = mysqli_query($connection, $query);
 		$post = mysqli_fetch_assoc($result);
 	?>
@@ -40,9 +40,11 @@
 			<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
 				<ul class="navbar-nav">
 					<span class="navbar-text justify-content-right">
-						Logged in as: <?php if(!isset($_SESSION["username"])){
+						Logged in as: <?php 
+										//Check if user is logged in or not
+										if(!isset($_SESSION["username"])){
 											echo "No one";
-										 } else { 
+										} else { 
 											echo $_SESSION["username"]; }
 									  ?>
 					</span>
@@ -59,6 +61,7 @@
 						<a class="nav-link" href="secure.php">Profile</a>
 					</li>
 					<?php
+						//If user is logged in display logout, if not display sign in and sign up
 						if (!isset($_SESSION["username"])) {
 							echo '<li class="nav-item"><a class="nav-link" href="login.php">Log in</a></li>';
 							echo '<li class="nav-item"><a class="nav-link" href="newuser.html">Sign up</a></li>';
@@ -72,43 +75,138 @@
 
 		<!-- Main Content -->
 		<div class="container mt-3">
+			<!-- Display Post -->
+			<?php if(isset($_SESSION['userID'])){$userID = $_GET['userID'];} else { echo '<p>Cant find userID</p>';} ?>
 			<h1><?php echo $post['title']; ?></h1>
 			<p>Posted by <?php echo $post['username']; ?> on <?php echo $post['date']; ?></p>
-			<hr>
-			<p><?php echo $post['content']; ?></p>
+			<?php
+				// Display post content
+				echo '<p id="postContent">' . $post['content'] . '</p>';
+				// Check if current user is the author of the post
+				if ($_SESSION['userID'] == $post['userID']) {
+					// Show edit and delete buttons
+					echo '<button class="btn btn-primary mr-2" id="editBtn" onclick="editPost()">Edit</button>';
+					echo '<form action="deletepost.php?postID=' . $postID . '&userID=' . $userID . '" method="post">';
+					echo '<button class="btn btn-danger" id="deleteBtn" onclick="return confirmDelete();">Delete</button>';
+					echo '</form>';
+				}
+			?>
+
+			<!-- Edit post form (hidden by default) -->
+			<form id="editForm" action="editpost.php?postID=<?php echo $postID; ?>" method="post" style="display: none;">
+				<textarea class="form-control mb-3" name="content" id="editContent" placeholder="<?php echo $post['content']; ?>"><?php echo $post['content']; ?></textarea>
+				<button class="btn btn-success mr-2" type="submit">Save</button>
+				<button class="btn btn-secondary" type="button" onclick="cancelEdit()">Cancel</button>
+			</form>
 
 			<!-- Form to submit a new comment -->
-			<form method="POST" action="add_comment.php">
-				<input type="hidden" name="postID" value="<?php echo $postID; ?>">
-				<input type="hidden" name="username" value="<?php echo $_SESSION["username"]; ?>">
+			<form method="POST" action="add_comment.php?postID=<?php echo $postID; ?>">
 				<div class="form-group">
 					<label for="content">Comment:</label>
 					<textarea class="form-control" name="content" placeholder="Write a comment here..." required></textarea>
 				</div>
+				<input type="hidden" name="postID" value="<?php echo $postID; ?>">
 				<button type="submit" class="btn btn-primary">Submit</button>
 			</form>
 
 			<!-- Display existing comments -->
 			<h2>Comments:</h2>
 			<?php
-				// Query the comments table for comments on the current post
-				$query = "SELECT * FROM comments WHERE postID = '$postID'";
-				$result = $connection->query($query);
+			// Get postID and userID from URL parameters
+			$postID = $_GET['postID'];
+			if(isset($_SESSION['userID'])){$userID = $_GET['userID'];} else {$userID = NULL;}
 
-				// Loop through the comments and display each one
-				while ($comment = $result->fetch_assoc()) {
-					// Query the users table to get the username for the current comment
-					$query = "SELECT username FROM users WHERE userID = '{$comment['userID']}'";
-					$userResult = $connection->query($query);
-					$user = $userResult->fetch_assoc();
+			// Query comments table for comments on current post and join with users table to get username for each comment
+			$queryComments = "SELECT comments.*, users.username FROM comments JOIN users ON comments.userID = users.userID WHERE comments.postID = '$postID'";
+			$resultComments = $connection->query($queryComments);
 
-					echo '<div class="comment">';
-					echo '<p>Comment by ' . $user['username'] . ' on ' . $comment['date'] . '</p>';
+			// Loop through comments and display each one
+			echo '<ul>';
+			while ($comment = $resultComments->fetch_assoc()) {
+				// Get username for current comment
+				$commentUserID = $comment['userID'];
+				$queryUsername = "SELECT username FROM users WHERE userID = $commentUserID";
+				$resultUsername = $connection->query($queryUsername);
+				$rowUsername = $resultUsername->fetch_assoc();
+				$username = $rowUsername['username'];
+
+				// Display comment content and author's username
+				echo '<li>';
+				echo '<div class="comment">';
+				echo '<p>Comment by ' . $username . ' on ' . $comment['date'] . '</p>';
+
+				// Check if comment is being edited
+				if (isset($_POST['edit']) && $_POST['commentID'] == $comment['commentID']) {
+					// check if cancel button was clicked
+					if (isset($_POST['cancel'])) {
+						// turn input field back into a list object
+						echo '<li>' . $comment['content'] . '</li>';
+					} else {
+						// display input box with current comment content as placeholder
+						echo '<form action="editcomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+						echo '<input type="text" name="content" value="' . $comment['content'] . '" placeholder="' . $comment['content'] . '">';
+						echo '<button type="submit" name="save">Save</button>';
+						echo '<button type="submit" name="cancel" formaction="">Cancel</button>';
+						echo '</form>';
+					}
+				} else {
+					// Display comment content and author's username
 					echo '<p>' . $comment['content'] . '</p>';
-					echo '</div>';
+
+					// Query users table for current user's userID
+					$queryUserID = "SELECT userID FROM users WHERE username='$username'";
+					$resultUserID = mysqli_query($connection, $queryUserID);
+					$rowUserID = mysqli_fetch_assoc($resultUserID);
+					$current_userID = $rowUserID['userID'];
+
+					// Check if user is author of comment or an admin
+					if ($current_userID == $userID || isset($_SESSION['admin'])) {
+						// Display edit and delete buttons
+						echo '<form action="post.php?postID=' . $postID . '&userID=' . $_SESSION['userID'] . '" method="post">';
+						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+						echo '<button type="submit" name="edit">Edit</button>';
+						echo '</form>';
+						echo '<form action="deletecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+						echo '<button type="submit" onclick="return confirmDelete();"  id="deleteBtn" name="delete">Delete</button>';
+						echo '</form>';
+					} else { 
+						echo '<p>No button for you bitch</p>'; 
+					}
 				}
-			?>
+				echo '</div>';
+				echo '</li>';
+			}
+			echo '</ul>';
+		?>
 		</div>
+
+		<!-- Script to prompt user before deleting a comment/post -->
+		<script>
+			function confirmDelete() {
+				return confirm("Are you sure you want to delete this comment?");
+			}
+		</script>
+
+		<!-- Script to hide post content & revert back -->
+		<script>
+			//Hides: postContent, edit, and delete & displays: editForm
+			function editPost() {
+				document.getElementById("postContent").style.display = "none";
+				document.getElementById("editForm").style.display = "block";
+				document.getElementById("editContent").focus();
+				document.getElementById("editBtn").style.display = "none";
+				document.getElementById("deleteBtn").style.display = "none";
+			}
+			//Reverts actions by editPost()
+			function cancelEdit() {
+				document.getElementById("postContent").style.display = "block";
+				document.getElementById("editForm").style.display = "none";
+				document.getElementById("editBtn").style.display = "inline-block";
+				document.getElementById("deleteBtn").style.display = "inline-block";
+			}
+		</script>
 
 		<!-- Footer -->
 		<footer class="bg-dark text-white mt-3 p-3 text-center">

@@ -63,7 +63,7 @@
 				<div class="row">
 					<div class="col-md-8">
 						<h1>Submit a Blog Post</h1>
-						<form action="submitpost.php" method="POST">
+						<form action="add_post.php?userID=<?php echo $_SESSION['userID'] ?>" method="POST">
 							<div class="form-group">
 								<label for="title">Title:</label>
 								<input type="text" class="form-control" id="title" name="title" placeholder="Enter title">
@@ -81,54 +81,6 @@
 					</div>
 				</div>
 		</div>
-		<!-- Check for submitted form -->
-		<?php
-			if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-				// Get form data
-				$title = $_POST['title'];
-				$author = $_SESSION["username"];
-				$content = $_POST['content'];
-				$username = $_SESSION["username"];
-				// Get userID
-				$query = "SELECT userID FROM users WHERE username='$username'";
-				$result = mysqli_query($connection, $query);
-				$row = mysqli_fetch_assoc($result);
-				$userID = $row['userID'];
-
-				// Validate form data (you should add more validation if needed)
-				if (!empty($title) && !empty($author) && !empty($content)) {
-
-					// Check if the userID exists in the users table
-					$query = "SELECT COUNT(*) as count FROM users WHERE userID='$userID'";
-					$result = mysqli_query($connection, $query);
-					$row = mysqli_fetch_assoc($result);
-					$userCount = $row['count'];
-
-					if ($userCount == 1) {
-						// Get the current date and time
-						$date = date('Y-m-d H:i');
-
-						// Insert the post into the database
-						$query = "INSERT INTO posts (title, userID, username, content, date) VALUES ('$title', '$userID','$author', '$content', '$date')";
-						if ($connection->query($query)) {
-							 // Get the ID of the newly created post
-							$postID = mysqli_insert_id($connection);
-
-							// Close the database connection
-							$connection->close();
-
-							// Redirect to the newly created post
-							header("Location: post.php?id=$postID");
-							exit();
-					} else {
-						echo "Invalid userID";
-					}
-
-					// Close the database connection
-					$connection->close();
-				}
-			}
-		?>
 
 		<!-- Footer -->
 		<footer class="bg-dark text-white mt-3 p-3 text-center">

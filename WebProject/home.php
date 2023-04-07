@@ -47,7 +47,13 @@
 						<a class="nav-link" href="findpost.php">Navigate</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="submitPost.php">Create Post</a>
+						<?php
+							if (isset($_SESSION['username'])){
+								echo '<a class="nav-link" href="submitPost.php?userID=' . $_SESSION['userID'] . '">Create Post</a>';
+							} else {
+								echo '<a class="nav-link disabled" href="submitPost.php" disabled>Create Post</a>';
+							}
+						?>
 					</li>
 					<li>
 						<a class="nav-link" href="secure.php">Profile</a>
@@ -73,14 +79,18 @@
 						<p>Where you'll be able to view, join, and contribute to what other people are saying around the globe.</p>
 					</div>
 					<div class="col">
-					  <h3>See what's new!</h3>
-					  <ul class="list-unstyled">
+						<h3>See what's new!</h3>
+						<ul class="list-unstyled">
 						<?php
 							$query = "SELECT * FROM posts ORDER BY date DESC LIMIT 5";
 							$result = $connection->query($query);
 
 							while ($row = $result->fetch_assoc()) {
-								echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
+								if (isset($_SESSION['userID'])) {
+									echo '<li><a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a></li>';
+								} else {
+									echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
+								}
 							}
 						?>
 					</div>
@@ -90,13 +100,16 @@
 					  <h4>Top Posts</h4>
 					  <ul class="list-unstyled">
 						<?php
+							$query = "SELECT * FROM posts ORDER BY date DESC LIMIT 5";
+							$result = $connection->query($query);
 
-						  $query = "SELECT * FROM posts ORDER BY likes DESC LIMIT 5";
-						  $result = $connection->query($query);
-
-						  while ($row = $result->fetch_assoc()) {
-							echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
-						  }
+							while ($row = $result->fetch_assoc()) {
+								if (isset($_SESSION['userID'])) {
+									echo '<li><a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a></li>';
+								} else {
+									echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
+								}
+							}
 						?>
 					  </ul>
 					</div>

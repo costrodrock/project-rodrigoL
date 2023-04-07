@@ -28,8 +28,9 @@
         $result = $connection->query($query);
 
         // Redirect back to the post page
-        header("Location: post.php?postID=$postID");
-        exit();
+        $referer = $_SERVER['HTTP_REFERER'];
+		header("Refresh: 0; URL=$referer");
+		exit();
     ?>
 </html>
 

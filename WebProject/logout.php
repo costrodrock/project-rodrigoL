@@ -14,8 +14,8 @@
     session_destroy();
 
     // Redirect back to the referring page
-    $referer = $_SERVER["HTTP_REFERER"];
-    header("Location: $referer");
+    $referer = $_SERVER['HTTP_REFERER'];
+    header("Refresh: 0; URL=$referer");
     exit();
 ?>
 </html>
