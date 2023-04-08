@@ -13,12 +13,8 @@
 
 	// Check if the session variable is set
 	if(isset($_SESSION['username']) && $_SERVER["REQUEST_METHOD"] == "POST") {
-		// Get the current user's ID based on their username
-        $username = $_SESSION['username'];
-        $query = "SELECT userID FROM users WHERE username = '$username'";
-        $result = $connection->query($query);
-        $user = $result->fetch_assoc();
-        $userID = $user['userID'];
+		// Get the current user's ID from URL
+		$userID = $_GET['userID'];
 
 		// Check if the userID exists in the users table
 		$query = "SELECT COUNT(*) as count FROM users WHERE userID = '$userID'";
@@ -28,22 +24,21 @@
 		if ($row['count'] == 0) {
 			echo "Error: User does not exist.";
 		} else {
-			// Get post data
-			$title = mysqli_real_escape_string($connection, $_POST['title']);
-			$content = mysqli_real_escape_string($connection, $_POST['content']);
-			$date = date('Y-m-d H:i');
+			// Get theme data
+			$title = $_POST['title'];
+			$description = $_POST['description'];
 
-			// Insert the post into the database
-			$query = "INSERT INTO posts (title, userID, content, date) VALUES ('$title', '$userID', '$content', '$date')";
+			// Insert the theme into the database
+			$query = "INSERT INTO themes (title, description) VALUES ('$title', '$description')";
 			if ($connection->query($query)) {
-				// Get the ID of the newly created post
-				$postID = mysqli_insert_id($connection);
+				// Get the ID of the newly created theme
+				$themeID = mysqli_insert_id($connection);
 
 				// Close the database connection
 				$connection->close();
 
-				// Redirect to the newly created post
-				header("Location: post.php?postID=$postID&userID=$userID");
+				// Redirect to the newly created theme
+				header("Location: themes.php?userID=$userID&themeID=$themeID");
 				exit();
 			} else {
 				echo "Error: " . $query . "<br>" . mysqli_error($connection);

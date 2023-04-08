@@ -75,22 +75,71 @@
 
 		<!-- Main Content -->
 		<div class="container mt-3">
-			<!-- Display Post -->
-			<?php if(isset($_SESSION['userID'])){$userID = $_GET['userID'];} else { echo '<p>Cant find userID</p>';} ?>
-			<h1><?php echo $post['title']; ?></h1>
-			<p>Posted by <?php echo $post['username']; ?> on <?php echo $post['date']; ?></p>
-			<?php
-				// Display post content
-				echo '<p id="postContent">' . $post['content'] . '</p>';
-				// Check if current user is the author of the post
-				if ($_SESSION['userID'] == $post['userID']) {
-					// Show edit and delete buttons
-					echo '<button class="btn btn-primary mr-2" id="editBtn" onclick="editPost()">Edit</button>';
-					echo '<form action="deletepost.php?postID=' . $postID . '&userID=' . $userID . '" method="post">';
-					echo '<button class="btn btn-danger" id="deleteBtn" onclick="return confirmDelete();">Delete</button>';
-					echo '</form>';
-				}
-			?>
+		<!-- Display Post -->
+		<div class="card mb-4">
+			<div class="card-body">
+				<?php if(isset($_SESSION['userID'])){$userID = $_GET['userID'];}?>
+				<h1 class="card-title"><?php echo $post['title']; ?></h1>
+				<p class="card-text">Posted by <?php echo $post['username']; ?> on <?php echo $post['date']; ?></p>
+				<p class="card-text"><?php echo $post['content']; ?></p>
+				<?php
+					// Check if viewer is logged in
+					if (isset($_SESSION['userID'])) {
+						// Check if current user is the author of the post
+						if ($_SESSION['userID'] == $post['userID']) {
+							// Show edit and delete buttons
+							echo '<button class="btn btn-primary mr-2" id="editBtn" onclick="editPost()">Edit</button>';
+							echo '<form action="deletepost.php?postID=' . $postID . '&userID=' . $userID . '" method="post">';
+							echo '<button class="btn btn-danger" id="deleteBtn" onclick="return confirmDelete();">Delete</button>';
+							echo '</form>';
+						}
+						// Show like and dislike buttons
+						echo '<form action="updatepost.php?postID=' . $postID . '" method="post">';
+						echo '<button type="submit" class="btn btn-success mr-2" name="likeBtn">Like</button>';
+						//Show number of likes in between buttons
+						$query = "SELECT likes FROM posts WHERE postID = '$postID'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$likes = $row['likes'];
+						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+						echo '<button type="submit" class="btn btn-danger mr-2" name="dislikeBtn">Dislike</button>';
+						echo '</form>';
+						// Show number of comments button
+						$query = "SELECT COUNT(*) AS total_comments FROM comments WHERE postID = '$postID'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$total_comments = $row['total_comments'];
+						echo '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#commentsSection" aria-expanded="false" aria-controls="commentsSection">Comments (' . $total_comments . ')</button>';
+						// Display comments
+						echo '<div class="collapse mt-3" id="commentsSection">';
+						$query = "SELECT * FROM comments WHERE postID = '$postID'";
+						$result = mysqli_query($connection, $query);
+						while ($comment = mysqli_fetch_assoc($result)) {
+							echo '<div class="card mb-3">';
+							echo '<div class="card-body">';
+							echo '<h6 class="card-subtitle mb-2 text-muted">Commented by ' . $comment['username'] . ' on ' . $comment['date'] . '</h6>';
+							echo '<p class="card-text">' . $comment['content'] . '</p>';
+							echo '</div>';
+							echo '</div>';
+						}
+						echo '</div>';
+					} else {
+						//Show number of likes
+						$query = "SELECT likes FROM posts WHERE postID = '$postID'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$likes = $row['likes'];
+						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+						// Show number of comments button
+						$query = "SELECT COUNT(*) AS total_comments FROM comments WHERE postID = '$postID'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$total_comments = $row['total_comments'];
+						echo '<div class="btn btn-info" style="pointer-events: none;">Comments (' . $total_comments . ')</div>';
+					}
+				?>
+			</div>
+		</div>
 
 			<!-- Edit post form (hidden by default) -->
 			<form id="editForm" action="editpost.php?postID=<?php echo $postID; ?>" method="post" style="display: none;">
@@ -100,14 +149,18 @@
 			</form>
 
 			<!-- Form to submit a new comment -->
-			<form method="POST" action="add_comment.php?postID=<?php echo $postID; ?>">
-				<div class="form-group">
-					<label for="content">Comment:</label>
-					<textarea class="form-control" name="content" placeholder="Write a comment here..." required></textarea>
-				</div>
-				<input type="hidden" name="postID" value="<?php echo $postID; ?>">
-				<button type="submit" class="btn btn-primary">Submit</button>
-			</form>
+			<?php
+				if (isset($_SESSION['userID'])){ 
+					echo "<form method='POST' action='add_comment.php?postID=$postID'>";
+					echo '<div class="form-group">';
+					echo '<label for="content">Comment:</label>';
+					echo '<textarea class="form-control" name="content" placeholder="Write a comment here..." required></textarea>';
+					echo '</div>';
+					echo '<input type="hidden" name="postID" value="<?php echo $postID; ?>">';
+					echo '<button type="submit" class="btn btn-primary">Submit</button>';
+					echo '</form>';
+				}
+			?>
 
 			<!-- Display existing comments -->
 			<h2>Comments:</h2>
@@ -160,6 +213,28 @@
 					$rowUserID = mysqli_fetch_assoc($resultUserID);
 					$current_userID = $rowUserID['userID'];
 
+						// Check if viewer is logged in
+					if (isset($_SESSION['userID'])) {
+						// Show like and dislike buttons
+						echo '<form action="updatecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+						echo '<button type="submit" class="btn btn-success mr-2" name="likeBtn">Like</button>';
+						// Show number of likes in between buttons
+						$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$likes = $row['likes'];
+						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+						echo '<button type="submit" class="btn btn-danger mr-2" name="dislikeBtn">Dislike</button>';
+						echo '</form>';
+					} else {
+						// Show number of likes in between buttons
+						$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
+						$result = mysqli_query($connection, $query);
+						$row = mysqli_fetch_assoc($result);
+						$likes = $row['likes'];
+						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+					}
+
 					// Check if user is author of comment or an admin
 					if ($current_userID == $userID || isset($_SESSION['admin'])) {
 						// Display edit and delete buttons
@@ -171,8 +246,6 @@
 						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
 						echo '<button type="submit" onclick="return confirmDelete();"  id="deleteBtn" name="delete">Delete</button>';
 						echo '</form>';
-					} else { 
-						echo '<p>No button for you bitch</p>'; 
 					}
 				}
 				echo '</div>';

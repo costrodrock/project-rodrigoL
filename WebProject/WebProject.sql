@@ -52,19 +52,29 @@ CREATE TABLE `posts` (
 	`title` varchar(255) NOT NULL,
 	`content` varchar(1000) NOT NULL,
 	`likes` INT NOT NULL,
+	`liked_by` varchar(255) DEFAULT NULL,
+	`disliked_by` varchar(255) DEFAULT NULL,
 	`comments` INT NOT NULL,
 	PRIMARY KEY (`postID`),
-	FOREIGN KEY (`userID`) REFERENCES `users`(`userID`)
+	FOREIGN KEY (`userID`) REFERENCES `users`(`userID`),
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `themes` (
 	`themeID` INT NOT NULL AUTO_INCREMENT,
-	`postID` INT NOT NULL,
+	`postIDs` TEXT DEFAULT NULL,
 	`title` varchar(255) NOT NULL,
 	`description` varchar(255) NOT NULL,
 	`amount` INT NOT NULL,
 	PRIMARY KEY (`themeID`),
 	FOREIGN KEY (`postID`) REFERENCES `posts`(`postID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `theme_posts` (
+  `themeID` INT NOT NULL,
+  `postID` INT NOT NULL,
+  FOREIGN KEY (`themeID`) REFERENCES `themes`(`themeID`),
+  FOREIGN KEY (`postID`) REFERENCES `posts`(`postID`),
+  PRIMARY KEY (`themeID`, `postID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `admin` (
@@ -81,6 +91,9 @@ CREATE TABLE `comments` (
   `parentID` INT DEFAULT NULL,
   `date` DATETIME NOT NULL,
   `content` TEXT NOT NULL,
+  `likes` INT NOT NULL,
+  `liked_by` varchar(255) DEFAULT NULL,
+  `disliked_by` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`commentID`),
   FOREIGN KEY (`postID`) REFERENCES `posts`(`postID`),
   FOREIGN KEY (`userID`) REFERENCES `users`(`userID`),

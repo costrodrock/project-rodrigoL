@@ -58,43 +58,26 @@
 				</ul>
 			</div>
 		</nav>
-		<!-- Create Post -->
+		<!-- Create Theme -->
 		<div class="container mt-3">
-				<div class="row">
-					<div class="col-md-8">
-						<h1>Submit a Blog Post</h1>
-						<form action="add_post.php" method="POST">
-							<div class="form-group">
-								<label for="title">Title:</label>
-								<input type="text" class="form-control" id="title" name="title" placeholder="Enter title">
-							</div>
-							<div class="form-group">
-								<label for="author">Author:</label>
-								<pass type="text" class="form-control" id="username" name="username"><?php echo $_SESSION["username"]; ?></pass>
-							</div>
-							<div class="form-group">
-								<label for="content">Content:</label>
-								<textarea class="form-control" id="content" name="content" rows="5" placeholder="Enter blog post content"></textarea>
-							</div>
-							<div class="form-group">
-								<label for="themeID">Select a theme:</label>
-								<select class="form-control" id="themeID" name="themeID">
-									<?php
-										// Retrieve all the themes from the database
-										$query = "SELECT * FROM themes";
-										$result = mysqli_query($connection, $query);
-										
-										// Loop through the themes and add them as options in the select input
-										while ($theme = mysqli_fetch_assoc($result)) {
-											echo '<option value="' . $theme['themeID'] . '">' . $theme['title'] . '</option>';
-										}
-									?>
-								</select>
-							</div>
-							<button type="submit" class="btn btn-primary">Submit</button>
-						</form>
-					</div>
+			<div class="row">
+				<div class="col-md-8">
+					<h1>Create a Theme</h1>
+					<form action="add_theme.php?userID=<?php echo $_SESSION['userID'] ?>" method="POST">
+						<div class="form-group">
+							<label for="title">Title:</label>
+							<input type="text" class="form-control" id="title" name="title" placeholder="Enter title">
+						</div>
+						<div class="form-group">
+							<label for="description">Description:</label>
+							<textarea class="form-control" id="description" name="description" rows="5" placeholder="Enter theme description"></textarea>
+						</div>
+						<?php if(isset($_SESSION["userID"])) { ?>
+							<button type="submit" class="btn btn-primary">Create</button>
+						<?php } ?>
+					</form>
 				</div>
+			</div>
 		</div>
 
 		<!-- Footer -->

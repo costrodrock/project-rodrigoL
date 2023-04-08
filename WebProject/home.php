@@ -44,6 +44,9 @@
 						<a class="nav-link" href="home.php">Home</a>
 					</li>
 					<li class="nav-item">
+						<a class="nav-link" href="findthemes.php?userID=' . $_SESSION['userID'] . '">Themes</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link" href="findpost.php">Navigate</a>
 					</li>
 					<li class="nav-item">
@@ -80,55 +83,68 @@
 					</div>
 					<div class="col">
 						<h3>See what's new!</h3>
-						<ul class="list-unstyled">
 						<?php
 							$query = "SELECT * FROM posts ORDER BY date DESC LIMIT 5";
 							$result = $connection->query($query);
 
 							while ($row = $result->fetch_assoc()) {
 								if (isset($_SESSION['userID'])) {
-									echo '<li><a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a></li>';
+									echo '<div class="card mb-3">
+											<div class="card-body">
+												<h5 class="card-title"><a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a></h5>
+												<p class="card-text">' . $row['content'] . '</p>
+												<p class="card-text"><small class="text-muted">Posted on ' . $row['date'] . '</small></p>
+											</div>
+										  </div>';
 								} else {
-									echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
+									echo '<div class="card mb-3">
+											<div class="card-body">
+												<h5 class="card-title"><a href="post.php?postID=' . $row['postID'] . '&userID=' . "" . '">' . $row['title'] . '</a></h5>
+												<p class="card-text">' . $row['content'] . '</p>
+												<p class="card-text"><small class="text-muted">Posted on ' . $row['date'] . '</small></p>
+											</div>
+										  </div>';
 								}
 							}
 						?>
 					</div>
 				</div>
 				<div class="col-2 stick-right">
-					<div class="col">
-					  <h4>Top Posts</h4>
-					  <ul class="list-unstyled">
+				  <div class="col">
+					<h4>Top Posts</h4>
+					<?php
+					  $query = "SELECT * FROM posts ORDER BY likes DESC LIMIT 5";
+					  $result = $connection->query($query);
+					  while ($row = $result->fetch_assoc()) {
+						echo '<div class="card mb-2">';
+						echo '<div class="card-body">';
+						echo '<h5 class="card-title">';
+						if (isset($_SESSION['userID'])) {
+						  echo '<a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a>';
+						} else {
+						  echo '<a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a>';
+						}
+						echo '</div>';
+						echo '</div>';
+					  }
+					?>
+				  </div>
+				  <div class="col">
+					<h4>Top Themes</h4>
 						<?php
-							$query = "SELECT * FROM posts ORDER BY date DESC LIMIT 5";
-							$result = $connection->query($query);
-
-							while ($row = $result->fetch_assoc()) {
-								if (isset($_SESSION['userID'])) {
-									echo '<li><a href="post.php?postID=' . $row['postID'] . '&userID=' . $_SESSION['userID'] . '">' . $row['title'] . '</a></li>';
-								} else {
-									echo '<li><a href="post.php?postID=' . $row['postID'] . '">' . $row['title'] . '</a></li>';
-								}
-							}
-						?>
-					  </ul>
-					</div>
-					<div class="col">
-					  <h4>Top Themes</h4>
-					  <ul class="list-unstyled">
-						<?php
-
-						  $query = "SELECT themeID, SUM(themeID) as total_amount FROM themes GROUP BY themeID ORDER BY total_amount DESC LIMIT 5";
+						  $query = "SELECT themes.title, themes.themeID FROM themes ORDER BY themes.title DESC LIMIT 5";
 						  $result = $connection->query($query);
-
 						  while ($row = $result->fetch_assoc()) {
-							echo '<li><a href="#">' . $row['themeID'] . ' (' . $row['total_amount'] . ')</a></li>';
+							echo '<div class="card mb-2">';
+							echo '<div class="card-body">';
+							echo '<h5 class="card-title"><a href="themes.php?themeID=' . $row['themeID'] . '">' . $row['title'] . '</a></h5>';
+							echo '</div>';
+							echo '</div>';
 						  }
-						?>
-					  </ul>
-					</div>
+?>
+				  </div>
+				</div>
 			</div>
-		</div>
 		<?php
 			mysqli_close($connection);
 		?>

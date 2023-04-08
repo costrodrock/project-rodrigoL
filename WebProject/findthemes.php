@@ -10,7 +10,7 @@
 
 		// Retrieve filter inputs from the search bar
 		$search = $_GET['search'] ?? '';
-		$sort_by = $_GET['sort_by'] ?? 'date';
+		$sort_by = $_GET['sort_by'] ?? 'title';
 		$order = $_GET['order'] ?? 'desc';
 		$page = $_GET['page'] ?? 1;
 	
@@ -80,15 +80,13 @@
 				<!-- Filter Search Bar -->
 				<div class="col mt-3">
 					<form class="form-inline">
-						<label class="sr-only" for="search">Search Posts</label>
-						<input type="text" class="form-control mb-2 mr-sm-2" id="search" name="search" placeholder="Search Posts" value="<?php echo $search; ?>">
+						<label class="sr-only" for="search">Search Themes</label>
+						<input type="text" class="form-control mb-2 mr-sm-2" id="search" name="search" placeholder="Search Themes" value="<?php echo $search; ?>">
 
 						<label class="sr-only" for="sort_by">Sort By</label>
 						<select class="form-control mb-2 mr-sm-2" id="sort_by" name="sort_by">
 							<option value="title"<?php if ($sort_by == 'title') echo ' selected'; ?>>Title</option>
-							<option value="likes"<?php if ($sort_by == 'likes') echo ' selected'; ?>>Likes</option>
-							<option value="comments"<?php if ($sort_by == 'comments') echo ' selected'; ?>>Comments</option>
-							<option value="date"<?php if ($sort_by == 'date') echo ' selected'; ?>>Most Recent</option>
+							<option value="num_posts"<?php if ($sort_by == 'num_posts') echo ' selected'; ?>>Number of Posts</option>
 						</select>
 
 						<label class="sr-only" for="order">Order</label>
@@ -98,61 +96,40 @@
 						</select>
 
 						<button type="submit" class="btn btn-primary mb-2">Search</button>
+
+						<?php if (isset($_SESSION['username'])): ?>
+							<a href="submittheme.php?userID=' . $_SESSION['userID'] . '" class="btn btn-primary mb-2">Create</a>
+						<?php endif; ?>
 					</form>
 				</div>
-				<!-- Post List -->
+				<!-- Theme List -->
 				<div class="col-md-8">
-					<h3>See what's new!</h3>
+					<h3>Explore Themes</h3>
 					<ul class="list-unstyled">
 						<?php
-							// Query the database for the posts
-							$query = "SELECT COUNT(*) as total FROM posts WHERE title LIKE '%$search%'";
-							$result = $mysqli->query($query);
-							$row = $result->fetch_assoc();
-							$total_pages = ceil($row['total'] / $limit);
-    
-							// Query database for post ID
-							$queryID = "SELECT postID FROM posts WHERE title = '$search'";
-							$resultID = $mysqli->query($queryID);
-							$rowID = $resultID->fetch_assoc();
-							// If search bar is empty, query all posts in the 'posts' table
-							if (empty($search)) {
-								$query = "SELECT * FROM posts ORDER BY $sort_by $order LIMIT $limit OFFSET $offset";
-							} else {
-								// Search bar is not empty, query the database for posts that match the search term
-								$query = "SELECT * FROM posts WHERE title LIKE '%$search%' OR content LIKE '%$search%' ORDER BY $sort_by $order LIMIT $limit OFFSET $offset";
-							}
+							// Query the database for the themes
+							$query = "SELECT t.*, COUNT(p.postID) as num_posts
+									  FROM themes t
+									  LEFT JOIN posts p ON t.postID = p.postID
+									  WHERE t.title LIKE '%$search%' OR t.description LIKE '%$search%'
+									  GROUP BY t.themeID
+									  ORDER BY $sort_by $order
+									  LIMIT $limit OFFSET $offset";
 
 							$result = $mysqli->query($query);
 
-							// Display the posts
+							// Display the themes
 							if ($result->num_rows > 0) {
-								$query = "SELECT p.postID, p.title, p.content, p.date, u.username, COUNT(c.commentID) as num_comments 
-										  FROM posts p 
-										  JOIN users u ON p.userID = u.userID 
-										  LEFT JOIN comments c ON p.postID = c.postID 
-										  WHERE p.title LIKE '%$search%' OR p.content LIKE '%$search%' 
-										  GROUP BY p.postID 
-										  ORDER BY $sort_by $order 
-										  LIMIT $limit OFFSET $offset";
-								$result = $mysqli->query($query);
 								while ($row = $result->fetch_assoc()) {
-									$postID = $row['postID'];
+									$themeID = $row['themeID'];
 									$title = $row['title'];
-									$content = $row['content'];
-									$date = date('F j, Y', strtotime($row['date']));
-									$num_comments = $row['num_comments'];
-									$author = $row['username'];
-									//Query for 'likes' for row matching 'postID'
-									$queryLikes = "SELECT likes FROM posts WHERE postID = $postID";
-									$resultLikes = $mysqli->query($queryLikes);
-									$num_likes = $resultLikes->fetch_assoc()['likes'];
+									$description = $row['description'];
+									$num_posts = $row['num_posts'];
 									echo '<div class="card my-3">
 											<div class="card-body">
-												<h5 class="card-title"><a href="post.php?id=' . $postID . '">' . $title . '</a></h5>
-												<p class="card-text">' . substr($content, 0, 150) . '...</p>
-												<p class="card-text"><small class="text-muted">Posted on ' . $date . ' by ' . $author . '</small></p>
-												<p class="card-text"><small class="text-muted">' . $num_likes . ' likes | ' . $num_comments . ' comments</small></p>
+												<h5 class="card-title"><a href="themes.php?themeID=' . $themeID . '">' . $title . '</a></h5>
+												<p class="card-text">' . $description . '</p>
+												<span class="badge badge-secondary">' . $num_posts . ' posts</span>
 											</div>
 										</div>';
 								}
@@ -165,6 +142,7 @@
 									</div>';
 							}
 						?>
+					</ul>
 					<nav aria-label="Page navigation">
 						<ul class="pagination justify-content-center">
 							<?php
