@@ -28,11 +28,16 @@
 		$offset = ($page - 1) * $limit;
 
 		// Get the theme information from the database
-		$query = "SELECT themes.*, posts.*, users.username, posts.date
-					FROM themes 
-					LEFT JOIN posts ON themes.postID = posts.postID 
-					JOIN users ON posts.userID = users.userID";
+		$query = "SELECT themes.*, COUNT(posts.postID) as num_posts, GROUP_CONCAT(posts.postID SEPARATOR ',') as postIDs, users.username, posts.date
+          FROM themes
+          LEFT JOIN posts ON posts.themeID = themes.themeID
+          JOIN users ON posts.userID = users.userID
+          WHERE themes.title LIKE '%$search%' OR themes.description LIKE '%$search%'
+          GROUP BY themes.themeID
+          ORDER BY $sort_by $order
+          LIMIT $limit OFFSET $offset";
 		$result = mysqli_query($connection, $query);
+
 	?>
 	<head>
 		<meta charset="UTF-8">
@@ -139,8 +144,9 @@
 						$title = $row['title'];
 						$description = $row['description'];
 
-						//Query for 'likes' for row matching 'themeID'
-						$queryLikes = "SELECT SUM(likes) as num_likes FROM posts WHERE themeID = $themeID";
+						// Query for 'likes' for row matching 'themeID'
+						$queryLikes = "SELECT SUM(likes) as num_likes FROM posts
+										WHERE themeID = $themeID";
 						$resultLikes = $connection->query($queryLikes);
 						$num_likes = $resultLikes->fetch_assoc()['num_likes'];
 						echo '<li>
@@ -150,17 +156,18 @@
 							</li>';
 
 						// Display the posts related to the themeID
-						$queryPosts = "SELECT p.postID, p.title, p.content, p.date, u.username, COUNT(c.commentID) as num_comments, t.themeID 
+						$queryPosts = "SELECT p.postID, p.title, p.content, p.date, u.username, COUNT(c.commentID) as num_comments, p.themeID 
 										FROM posts p 
 										JOIN users u ON p.userID = u.userID 
 										LEFT JOIN comments c ON p.postID = c.postID 
-										JOIN (
-										  SELECT postID, themeID FROM themes WHERE title = '$search'
-										) t ON p.postID = t.postID
-										GROUP BY p.postID 
+										WHERE p.themeID IN (
+											SELECT themeID FROM themes WHERE title LIKE '%$search%'
+										)
+										GROUP BY p.postID, p.title, p.content, p.date, u.username, p.themeID 
 										ORDER BY $sort_by $order 
 										LIMIT $limit OFFSET $offset";
 						$resultPosts = $connection->query($queryPosts);
+
         
 						// Check if there are any posts related to the themeID
 						if ($resultPosts->num_rows > 0) {
@@ -172,7 +179,7 @@
 								$numComments = $rowPosts['num_comments'];
 								$postAuthor = $rowPosts['username'];
 
-								//Query for 'likes' for row matching 'postID'
+								// Query for 'likes' for row matching 'postID'
 								$queryLikes = "SELECT likes FROM posts WHERE postID = $postID";
 								$resultLikes = $connection->query($queryLikes);
 								$numLikes = $resultLikes->fetch_assoc()['likes'];

@@ -108,13 +108,7 @@
 					<ul class="list-unstyled">
 						<?php
 							// Query the database for the themes
-							$query = "SELECT t.*, COUNT(p.postID) as num_posts
-									  FROM themes t
-									  LEFT JOIN posts p ON t.postID = p.postID
-									  WHERE t.title LIKE '%$search%' OR t.description LIKE '%$search%'
-									  GROUP BY t.themeID
-									  ORDER BY $sort_by $order
-									  LIMIT $limit OFFSET $offset";
+							$query = "SELECT COUNT(*) as total FROM themes WHERE title LIKE '%$search%'";
 
 							$result = $mysqli->query($query);
 
