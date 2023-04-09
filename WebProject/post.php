@@ -165,94 +165,94 @@
 			<!-- Display existing comments -->
 			<h2>Comments:</h2>
 			<?php
-			// Get postID and userID from URL parameters
-			$postID = $_GET['postID'];
-			if(isset($_SESSION['userID'])){$userID = $_GET['userID'];} else {$userID = NULL;}
+				// Get postID and userID from URL parameters
+				$postID = $_GET['postID'];
+				if(isset($_SESSION['userID'])){$userID = $_GET['userID'];} else {$userID = NULL;}
 
-			// Query comments table for comments on current post and join with users table to get username for each comment
-			$queryComments = "SELECT comments.*, users.username FROM comments JOIN users ON comments.userID = users.userID WHERE comments.postID = '$postID'";
-			$resultComments = $connection->query($queryComments);
+				// Query comments table for comments on current post and join with users table to get username for each comment
+				$queryComments = "SELECT comments.*, users.username FROM comments JOIN users ON comments.userID = users.userID WHERE comments.postID = '$postID'";
+				$resultComments = $connection->query($queryComments);
 
-			// Loop through comments and display each one
-			echo '<ul>';
-			while ($comment = $resultComments->fetch_assoc()) {
-				// Get username for current comment
-				$commentUserID = $comment['userID'];
-				$queryUsername = "SELECT username FROM users WHERE userID = $commentUserID";
-				$resultUsername = $connection->query($queryUsername);
-				$rowUsername = $resultUsername->fetch_assoc();
-				$username = $rowUsername['username'];
+				// Loop through comments and display each one
+				echo '<ul>';
+				while ($comment = $resultComments->fetch_assoc()) {
+					// Get username for current comment
+					$commentUserID = $comment['userID'];
+					$queryUsername = "SELECT username FROM users WHERE userID = $commentUserID";
+					$resultUsername = $connection->query($queryUsername);
+					$rowUsername = $resultUsername->fetch_assoc();
+					$username = $rowUsername['username'];
 
-				// Display comment content and author's username
-				echo '<li>';
-				echo '<div class="comment">';
-				echo '<p>Comment by ' . $username . ' on ' . $comment['date'] . '</p>';
-
-				// Check if comment is being edited
-				if (isset($_POST['edit']) && $_POST['commentID'] == $comment['commentID']) {
-					// check if cancel button was clicked
-					if (isset($_POST['cancel'])) {
-						// turn input field back into a list object
-						echo '<li>' . $comment['content'] . '</li>';
-					} else {
-						// display input box with current comment content as placeholder
-						echo '<form action="editcomment.php?commentID=' . $comment['commentID'] . '" method="post">';
-						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
-						echo '<input type="text" name="content" value="' . $comment['content'] . '" placeholder="' . $comment['content'] . '">';
-						echo '<button type="submit" name="save">Save</button>';
-						echo '<button type="submit" name="cancel" formaction="">Cancel</button>';
-						echo '</form>';
-					}
-				} else {
 					// Display comment content and author's username
-					echo '<p>' . $comment['content'] . '</p>';
+					echo '<li>';
+					echo '<div class="comment">';
+					echo '<p>Comment by ' . $username . ' on ' . $comment['date'] . '</p>';
 
-					// Query users table for current user's userID
-					$queryUserID = "SELECT userID FROM users WHERE username='$username'";
-					$resultUserID = mysqli_query($connection, $queryUserID);
-					$rowUserID = mysqli_fetch_assoc($resultUserID);
-					$current_userID = $rowUserID['userID'];
-
-						// Check if viewer is logged in
-					if (isset($_SESSION['userID'])) {
-						// Show like and dislike buttons
-						echo '<form action="updatecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
-						echo '<button type="submit" class="btn btn-success mr-2" name="likeBtn">Like</button>';
-						// Show number of likes in between buttons
-						$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
-						$result = mysqli_query($connection, $query);
-						$row = mysqli_fetch_assoc($result);
-						$likes = $row['likes'];
-						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
-						echo '<button type="submit" class="btn btn-danger mr-2" name="dislikeBtn">Dislike</button>';
-						echo '</form>';
+					// Check if comment is being edited
+					if (isset($_POST['edit']) && $_POST['commentID'] == $comment['commentID']) {
+						// check if cancel button was clicked
+						if (isset($_POST['cancel'])) {
+							// turn input field back into a list object
+							echo '<li>' . $comment['content'] . '</li>';
+						} else {
+							// display input box with current comment content as placeholder
+							echo '<form action="editcomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+							echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+							echo '<input type="text" name="content" value="' . $comment['content'] . '" placeholder="' . $comment['content'] . '">';
+							echo '<button type="submit" name="save">Save</button>';
+							echo '<button type="submit" name="cancel" formaction="">Cancel</button>';
+							echo '</form>';
+						}
 					} else {
-						// Show number of likes in between buttons
-						$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
-						$result = mysqli_query($connection, $query);
-						$row = mysqli_fetch_assoc($result);
-						$likes = $row['likes'];
-						echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
-					}
+						// Display comment content and author's username
+						echo '<p>' . $comment['content'] . '</p>';
 
-					// Check if user is author of comment or an admin
-					if ($current_userID == $userID || isset($_SESSION['admin'])) {
-						// Display edit and delete buttons
-						echo '<form action="post.php?postID=' . $postID . '&userID=' . $_SESSION['userID'] . '" method="post">';
-						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
-						echo '<button type="submit" name="edit">Edit</button>';
-						echo '</form>';
-						echo '<form action="deletecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
-						echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
-						echo '<button type="submit" onclick="return confirmDelete();"  id="deleteBtn" name="delete">Delete</button>';
-						echo '</form>';
+						// Query users table for current user's userID
+						$queryUserID = "SELECT userID FROM users WHERE username='$username'";
+						$resultUserID = mysqli_query($connection, $queryUserID);
+						$rowUserID = mysqli_fetch_assoc($resultUserID);
+						$current_userID = $rowUserID['userID'];
+
+							// Check if viewer is logged in
+						if (isset($_SESSION['userID'])) {
+							// Show like and dislike buttons
+							echo '<form action="updatecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+							echo '<button type="submit" class="btn btn-success mr-2" name="likeBtn">Like</button>';
+							// Show number of likes in between buttons
+							$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
+							$result = mysqli_query($connection, $query);
+							$row = mysqli_fetch_assoc($result);
+							$likes = $row['likes'];
+							echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+							echo '<button type="submit" class="btn btn-danger mr-2" name="dislikeBtn">Dislike</button>';
+							echo '</form>';
+						} else {
+							// Show number of likes in between buttons
+							$query = "SELECT likes FROM comments WHERE commentID = '{$comment['commentID']}'";
+							$result = mysqli_query($connection, $query);
+							$row = mysqli_fetch_assoc($result);
+							$likes = $row['likes'];
+							echo '<div class="btn btn-info" style="pointer-events: none;">Likes (' . $likes . ')</div>';
+						}
+
+						// Check if user is author of comment or an admin
+						if ($current_userID == $userID || isset($_SESSION['admin'])) {
+							// Display edit and delete buttons
+							echo '<form action="post.php?postID=' . $postID . '&userID=' . $_SESSION['userID'] . '" method="post">';
+							echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+							echo '<button type="submit" name="edit">Edit</button>';
+							echo '</form>';
+							echo '<form action="deletecomment.php?commentID=' . $comment['commentID'] . '" method="post">';
+							echo '<input type="hidden" name="commentID" value="' . $comment['commentID'] . '">';
+							echo '<button type="submit" onclick="return confirmDelete();"  id="deleteBtn" name="delete">Delete</button>';
+							echo '</form>';
+						}
 					}
+					echo '</div>';
+					echo '</li>';
 				}
-				echo '</div>';
-				echo '</li>';
-			}
-			echo '</ul>';
-		?>
+				echo '</ul>';
+			?>
 		</div>
 
 		<!-- Script to prompt user before deleting a comment/post -->

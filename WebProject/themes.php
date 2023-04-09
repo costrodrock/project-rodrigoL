@@ -145,14 +145,14 @@
 						$description = $row['description'];
 
 						// Query for 'likes' for row matching 'themeID'
-						$queryLikes = "SELECT SUM(likes) as num_likes FROM posts
+						$queryAmount = "SELECT amount FROM themes
 										WHERE themeID = $themeID";
-						$resultLikes = $connection->query($queryLikes);
-						$num_likes = $resultLikes->fetch_assoc()['num_likes'];
+						$resultAmount = $connection->query($queryAmount);
+						$amount = $resultAmount->fetch_assoc()['amount'];
 						echo '<li>
 								<h4><a href="themes.php?themeID=' . $themeID . '">' . $title . '</a></h4>
 								<p>' . substr($description, 0, 150) . '...</p>
-								<p><small class="text-muted">' . $num_likes . ' likes</small></p>
+								<p><small class="text-muted">' . $amount . ' posts</small></p>
 							</li>';
 
 						// Display the posts related to the themeID

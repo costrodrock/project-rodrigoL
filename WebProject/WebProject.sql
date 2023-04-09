@@ -41,7 +41,6 @@ CREATE TABLE `userimages`(
 	`userID` INT NOT NULL,
 	`contentType` varchar(255) NOT NULL,
 	`image` blob NOT NULL,
-	PRIMARY KEY (`userID`),
 	FOREIGN KEY (`userID`) REFERENCES `users`(`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

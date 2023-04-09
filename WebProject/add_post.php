@@ -61,6 +61,13 @@
                 mysqli_stmt_fetch($stmt2);
                 mysqli_stmt_free_result($stmt2);
 
+                // Increment the 'amount' column in the 'themes' table for the corresponding themeID
+                $query = "UPDATE themes SET amount = amount + 1 WHERE themeID = ?";
+                $stmt3 = mysqli_prepare($connection, $query);
+                mysqli_stmt_bind_param($stmt3, 'i', $themeID);
+                mysqli_stmt_execute($stmt3);
+                mysqli_stmt_close($stmt3);
+
                 if ($count2 == 0) {
                     echo "Error: Theme does not exist.";
                 } else {
