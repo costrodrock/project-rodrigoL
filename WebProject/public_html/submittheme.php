@@ -62,6 +62,15 @@
 							}
 						?>
 					</li>
+					<li class="nav-item">
+						<?php
+							if (isset($_SESSION['username'])){
+								echo '<a class="nav-link" href="submitTheme.php?userID=' . $_SESSION['userID'] . '">Create Theme</a>';
+							} else {
+								echo '<a class="nav-link disabled" href="submitTheme.php" disabled>Create Theme</a>';
+							}
+						?>
+					</li>
 					<li>
 						<a class="nav-link" href="secure.php">Profile</a>
 					</li>
