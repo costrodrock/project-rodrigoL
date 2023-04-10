@@ -29,7 +29,7 @@
 	?>
 	<head>
 		<meta charset="UTF-8">
-		<title>Board the Discussion</title>
+		<title>Find Posts</title>
 		
 		<link rel="stylesheet" href="style.css">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -54,10 +54,19 @@
 						<a class="nav-link" href="home.php">Home</a>
 					</li>
 					<li class="nav-item">
+						<a class="nav-link" href="findthemes.php?userID=' . $_SESSION['userID'] . '">Themes</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link" href="findpost.php">Navigate</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="submitPost.php">Create Post</a>
+						<?php
+							if (isset($_SESSION['username'])){
+								echo '<a class="nav-link" href="submitPost.php?userID=' . $_SESSION['userID'] . '">Create Post</a>';
+							} else {
+								echo '<a class="nav-link disabled" href="submitPost.php" disabled>Create Post</a>';
+							}
+						?>
 					</li>
 					<li>
 						<a class="nav-link" href="secure.php">Profile</a>
@@ -65,7 +74,7 @@
 					<?php
 						if (!isset($_SESSION["username"])) {
 							echo '<li class="nav-item"><a class="nav-link" href="login.php">Log in</a></li>';
-							echo '<li class="nav-item"><a class="nav-link" href="newuser.php">Sign up</a></li>';
+							echo '<li class="nav-item"><a class="nav-link" href="newuser.html">Sign up</a></li>';
 						} else {
 							echo '<li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>';
 						}

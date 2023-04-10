@@ -3,8 +3,9 @@
 
 <p>Here are some results:</p>
 <?php
+    session_start();
     $host = "localhost";
-    $database = "lab9";
+    $database = "webProject";
     $user = "webuser";
     $password = "P@ssw0rd";
 

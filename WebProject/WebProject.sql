@@ -94,7 +94,33 @@ CREATE TABLE `comments` (
 -- Dumping data for table `users`
 --
 
+INSERT INTO users (username, firstName, lastName, email, password)
+VALUES (`john.doe`, `John`, `Doe`, `johndoe@example.com`, `password123`),
+(`jane.doe`, `Jane`, `Doe`, `janedoe@example.com`, `password456`),
+(`alice.smith`, `Alice`, `Smith`, `alicesmith@example.com`, `password789`);
 
+INSERT INTO userimages (userID, contentType, image)
+VALUES (1, `image/jpeg`, `...`,), (2, `image/png`, `...`);
+
+INSERT INTO themes (title, description, amount)
+VALUES (`Technology`, `Posts related to technology and gadgets`, 0),
+(`Food`, `Posts related to food and recipes`, 0),
+(`Travel`, `Posts related to travel and adventures`, 0);
+
+INSERT INTO posts (userID, date, title, content, likes, liked_by, disliked_by, comments, themeID)
+VALUES (1, `2023-04-09`, `New iPhone release`, `Apple just released their new iPhone model`, 10, `1,2`, NULL, 5, 1),
+(2, `2023-04-08`, `Chocolate Cake Recipe`, `Here is the recipe for the best chocolate cake ever`, 20, `2`, `1`, 15, 2),
+(3, `2023-04-07`, `My Trip to Hawaii`, `Sharing my experience of my recent trip to Hawaii`, 5, NULL, `3`, 3, 3);
+
+INSERT INTO admin (username, password)
+VALUES (`admin`, `adminpassword`);
+
+INSERT INTO comments (postID, userID, parentID, date, content, likes, liked_by, disliked_by)
+VALUES (1, 2, NULL, `2023-04-09 10:30:00`, `Wow, the new iPhone looks amazing!`, 2, `2`, NULL),
+(1, 3, 1, `2023-04-09 11:00:00`, `I agree, I might have to upgrade`, 1, `3`, NULL),
+(2, 1, NULL, `2023-04-08 12:00:00`, `Thanks for sharing this recipe, I cant wait to try it!`, 5, `1,2`, NULL),
+(2, 2, 1, `2023-04-08 14:00:00`, `I made this cake last week and it was amazing!`, 3, `2`, NULL),
+(3, 1, NULL, `2023-04-07 10:00:00`, `Ive always wanted to go to Hawaii, thanks for sharing!`, 1, `1`, NULL);
 
 --
 -- Indexes for dumped tables

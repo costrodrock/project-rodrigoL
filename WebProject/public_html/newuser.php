@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html>
-
-<p>Here are some results:</p>
 <?php
     $host = "localhost";
     $database = "WebProject";
@@ -55,21 +53,15 @@
             mysqli_stmt_send_long_data($stmt, 2, $imagedata);
             $result = mysqli_stmt_execute($stmt) or die(mysqli_stmt_error($stmt));
             mysqli_stmt_close($stmt);
+
+            // Redirect the user to the page they were before
+            $previous_page = $_SERVER['HTTP_REFERER'];
+            header("Location: $previous_page");
           } else {
             echo "<p>Error: " . mysqli_error($connection) . "</p>";
           }
         }
       }
-    }
-
-    // Retrieve data from database
-    $sql = "SELECT * FROM users;";
-    $results = mysqli_query($connection, $sql);
-
-    // Print results
-    echo "<p>Here are the current users:</p>";
-    while ($row = mysqli_fetch_assoc($results)) {
-      echo $row['username'] . " " . $row['firstName'] . " " . $row['lastName'] . " " . $row['email'] . "<br/>";
     }
 
     mysqli_free_result($results);

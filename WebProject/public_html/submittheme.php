@@ -38,26 +38,45 @@
 			<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
 				<ul class="navbar-nav">
 					<span class="navbar-text justify-content-right">
-						Logged in as: <?php echo $_SESSION["username"]; ?>
+						Logged in as: <?php if(!isset($_SESSION["username"])){
+											echo "No one";
+										 } else { 
+											echo $_SESSION["username"]; }
+									  ?>
 					</span>
 					<li class="nav-item active">
 						<a class="nav-link" href="home.php">Home</a>
 					</li>
 					<li class="nav-item">
+						<a class="nav-link" href="findthemes.php?userID=' . $_SESSION['userID'] . '">Themes</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link" href="findpost.php">Navigate</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="submitPost.php">Create Post</a>
+						<?php
+							if (isset($_SESSION['username'])){
+								echo '<a class="nav-link" href="submitPost.php?userID=' . $_SESSION['userID'] . '">Create Post</a>';
+							} else {
+								echo '<a class="nav-link disabled" href="submitPost.php" disabled>Create Post</a>';
+							}
+						?>
 					</li>
 					<li>
 						<a class="nav-link" href="secure.php">Profile</a>
 					</li>
-					<li>
-						<a class="nav-link" href="logout.php">Logout</a>
-					</li>
-				</ul>
+					<?php
+						if (!isset($_SESSION["username"])) {
+							echo '<li class="nav-item"><a class="nav-link" href="login.php">Log in</a></li>';
+							echo '<li class="nav-item"><a class="nav-link" href="newuser.html">Sign up</a></li>';
+						} else {
+							echo '<li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>';
+						}
+					?>
+					</ul>
 			</div>
 		</nav>
+
 		<!-- Create Theme -->
 		<div class="container mt-3">
 			<div class="row">
